@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ error_code }} - Pixer Web Interface{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    {% if error_code == 404 %}
+                        <i class="fas fa-search fa-4x text-warning"></i>
+                    {% elif error_code == 500 %}
+                        <i class="fas fa-exclamation-triangle fa-4x text-danger"></i>
+                    {% else %}
+                        <i class="fas fa-exclamation-circle fa-4x text-secondary"></i>
+                    {% endif %}
+                </div>
+                
+                <h1 class="display-4 mb-3">{{ error_code }}</h1>
+                <h4 class="mb-4">{{ error_message }}</h4>
+                
+                {% if error_code == 404 %}
+                    <p class="text-muted">
+                        The page you're looking for doesn't exist. 
+                        It might have been moved, deleted, or you entered the wrong URL.
+                    </p>
+                {% elif error_code == 500 %}
+                    <p class="text-muted">
+                        Something went wrong on our end. 
+                        Please try again in a moment or check the device connection.
+                    </p>
+                {% else %}
+                    <p class="text-muted">
+                        An unexpected error occurred. Please try again.
+                    </p>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-home me-2"></i>Go Home
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Go Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

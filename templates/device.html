@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Device - Pixer Web Interface{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tv me-2"></i>Device Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="device-info-content">
+                    {% if device_status.success and device_status.device_info.connected %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Device Connected</strong>
+                            <div class="small mt-1">
+                                Connected to 192.168.1.1:6000
+                                {% if device_status.cached %}
+                                    (cached {{ "%.1f"|format(device_status.cache_age) }}s ago)
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            {% if device_status.device_info.battery_level %}
+                            <div class="col-sm-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-battery-three-quarters fa-2x text-success mb-2"></i>
+                                        <h6>Battery Level</h6>
+                                        <h4 class="text-success">{{ device_status.device_info.battery_level }}%</h4>
+                                        {% set battery = device_status.device_info.battery_level %}
+                                        {% if battery < 20 %}
+                                            <small class="text-danger">Low battery</small>
+                                        {% elif battery < 50 %}
+                                            <small class="text-warning">Medium battery</small>
+                                        {% else %}
+                                            <small class="text-success">Good battery</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="col-sm-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-display fa-2x text-primary mb-2"></i>
+                                        <h6>Display</h6>
+                                        <div>1872 × 1404</div>
+                                        <small class="text-muted">7.8" E-Ink</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h6>Firmware Versions</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                        {% if device_status.device_info.ble_version %}
+                                        <tr>
+                                            <td><i class="fas fa-bluetooth text-primary me-2"></i>BLE Version</td>
+                                            <td><code>{{ device_status.device_info.ble_version }}</code></td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if device_status.device_info.mcu_version %}
+                                        <tr>
+                                            <td><i class="fas fa-microchip text-info me-2"></i>MCU Version</td>
+                                            <td><code>{{ device_status.device_info.mcu_version }}</code></td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if device_status.device_info.ite_version %}
+                                        <tr>
+                                            <td><i class="fas fa-display text-warning me-2"></i>ITE Version</td>
+                                            <td><code>{{ device_status.device_info.ite_version }}</code></td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Device Not Connected</strong>
+                            <div class="small mt-1">
+                                {% if device_status.device_info.error %}
+                                    Error: {{ device_status.device_info.error }}
+                                {% else %}
+                                    Unable to connect to device at 192.168.1.1:6000
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6><i class="fas fa-wifi me-2"></i>Connection Requirements</h6>
+                                <ul class="list-unstyled small mb-0">
+                                    <li><i class="fas fa-check text-muted me-2"></i>Connect to Pixer WiFi network</li>
+                                    <li><i class="fas fa-check text-muted me-2"></i>Device should be powered on</li>
+                                    <li><i class="fas fa-check text-muted me-2"></i>Device IP should be 192.168.1.1</li>
+                                    <li><i class="fas fa-check text-muted me-2"></i>TCP port 6000 should be accessible</li>
+                                </ul>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tools me-2"></i>Device Operations
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <button class="btn btn-primary" id="check-device-btn">
+                        <i class="fas fa-sync-alt me-2"></i>Check Device Status
+                    </button>
+                    
+                    <button class="btn btn-warning" id="reset-device-btn">
+                        <i class="fas fa-power-off me-2"></i>Reset Device
+                    </button>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <a href="{{ url_for('upload_page') }}" class="btn btn-success">
+                            <i class="fas fa-upload me-2"></i>Upload New Image
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h6><i class="fas fa-info-circle me-2"></i>Operation Info</h6>
+                    <div class="small text-muted">
+                        <p><strong>Check Device Status:</strong> Refreshes connection status, battery level, and firmware versions.</p>
+                        <p><strong>Reset Device:</strong> Sends a reset command to the device. Use this if the device becomes unresponsive.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-network-wired me-2"></i>Network Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td><i class="fas fa-server text-primary me-2"></i>Device IP</td>
+                                <td><code>192.168.1.1</code></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-plug text-success me-2"></i>TCP Port</td>
+                                <td><code>6000</code></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-wifi text-info me-2"></i>WiFi Network</td>
+                                <td><code>Pixer-XXXX</code></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-globe text-warning me-2"></i>Protocol</td>
+                                <td><code>TCP Socket</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-info small">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> If you can't connect, try disconnecting and reconnecting to the Pixer WiFi network.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check device button
+    document.getElementById('check-device-btn').addEventListener('click', function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Checking...';
+        
+        showOperationModal('Device Check', 'device_check');
+        
+        fetch('/api/device/check', {method: 'POST'})
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                hideOperationModal();
+                alert('Failed to start device check: ' + data.error);
+                resetCheckButton();
+            }
+        })
+        .catch(error => {
+            hideOperationModal();
+            alert('Device check failed: ' + error.message);
+            resetCheckButton();
+        });
+        
+        function resetCheckButton() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Check Device Status';
+        }
+        
+        // Reset button after operation completes
+        window.addEventListener('operationComplete', function(e) {
+            if (e.detail.operation === 'device_check') {
+                resetCheckButton();
+                // Reload page to show updated device info
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        });
+    });
+    
+    // Reset device button
+    document.getElementById('reset-device-btn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to reset the device? This will restart the device.')) {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Resetting...';
+            
+            showOperationModal('Device Reset', 'device_reset');
+            
+            fetch('/api/device/reset', {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    hideOperationModal();
+                    alert('Failed to start device reset: ' + data.error);
+                    resetResetButton();
+                }
+            })
+            .catch(error => {
+                hideOperationModal();
+                alert('Device reset failed: ' + error.message);
+                resetResetButton();
+            });
+            
+            function resetResetButton() {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-power-off me-2"></i>Reset Device';
+            }
+            
+            // Reset button after operation completes
+            window.addEventListener('operationComplete', function(e) {
+                if (e.detail.operation === 'device_reset') {
+                    resetResetButton();
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

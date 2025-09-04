@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Upload - Pixer Web Interface{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-upload me-2"></i>Upload Image to Pixer Device
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Before uploading:</strong> Make sure you're connected to the Pixer WiFi network 
+                    and the device is powered on.
+                </div>
+                
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="image-file" class="form-label">
+                            <i class="fas fa-image me-2"></i>Select Image File
+                        </label>
+                        <input type="file" class="form-control form-control-lg" id="image-file" 
+                               name="file" accept="image/*" required>
+                        <div class="form-text">
+                            <strong>Supported formats:</strong> JPG, JPEG, PNG, BMP, TIFF, TIF, WebP<br>
+                            <strong>Maximum file size:</strong> 16MB<br>
+                            <strong>Target resolution:</strong> 1872x1404 pixels (images will be automatically resized)
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4" id="image-preview" style="display: none;">
+                        <label class="form-label">
+                            <i class="fas fa-eye me-2"></i>Image Preview
+                        </label>
+                        <div class="border rounded p-3 text-center bg-light">
+                            <img id="preview-image" src="" alt="Preview" class="img-fluid rounded" 
+                                 style="max-height: 300px; max-width: 100%;">
+                            <div id="image-info" class="mt-3">
+                                <div class="row g-2">
+                                    <div class="col-md-3">
+                                        <div class="small text-muted">Filename</div>
+                                        <div id="info-filename">-</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="small text-muted">Size</div>
+                                        <div id="info-size">-</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="small text-muted">Dimensions</div>
+                                        <div id="info-dimensions">-</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="small text-muted">Format</div>
+                                        <div id="info-format">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="upload-btn">
+                            <i class="fas fa-upload me-2"></i>Upload to Pixer Device
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()">
+                            <i class="fas fa-redo me-2"></i>Clear and Start Over
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-question-circle me-2"></i>Upload Process
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-list-ol me-2"></i>Steps</h6>
+                        <ol class="small">
+                            <li>Image validation and format check</li>
+                            <li>Image processing and resizing</li>
+                            <li>Connection to Pixer device</li>
+                            <li>Data upload to device</li>
+                            <li>Display update on device</li>
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-clock me-2"></i>Timing</h6>
+                        <ul class="list-unstyled small">
+                            <li><i class="fas fa-check text-success me-2"></i>Small images (&lt;1MB): ~10-30 seconds</li>
+                            <li><i class="fas fa-check text-warning me-2"></i>Medium images (1-5MB): ~30-60 seconds</li>
+                            <li><i class="fas fa-check text-danger me-2"></i>Large images (&gt;5MB): ~1-3 minutes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('image-file');
+    const previewDiv = document.getElementById('image-preview');
+    const previewImage = document.getElementById('preview-image');
+    const uploadBtn = document.getElementById('upload-btn');
+    
+    // Image file preview with detailed info
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Check file size
+            if (file.size > 16 * 1024 * 1024) {
+                alert('File is too large. Maximum size is 16MB.');
+                fileInput.value = '';
+                previewDiv.style.display = 'none';
+                return;
+            }
+            
+            // Check file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 
+                                'image/tiff', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Unsupported file format. Please use JPG, PNG, BMP, TIFF, or WebP.');
+                fileInput.value = '';
+                previewDiv.style.display = 'none';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewDiv.style.display = 'block';
+                
+                // Update file info
+                document.getElementById('info-filename').textContent = file.name;
+                document.getElementById('info-size').textContent = formatFileSize(file.size);
+                document.getElementById('info-format').textContent = file.type.split('/')[1].toUpperCase();
+                
+                // Get image dimensions
+                previewImage.onload = function() {
+                    document.getElementById('info-dimensions').textContent = 
+                        `${this.naturalWidth} × ${this.naturalHeight}`;
+                };
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewDiv.style.display = 'none';
+        }
+    });
+    
+    // Upload form handling
+    const uploadForm = document.getElementById('upload-form');
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(uploadForm);
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('Please select a file first.');
+            return;
+        }
+        
+        // Disable upload button
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+        
+        // Show operation modal
+        showOperationModal('Image Upload', 'image_upload');
+        
+        // Submit upload
+        fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                hideOperationModal();
+                alert('Upload failed: ' + data.error);
+                resetUploadButton();
+            }
+            // Operation modal will be updated by polling
+        })
+        .catch(error => {
+            hideOperationModal();
+            alert('Upload failed: ' + error.message);
+            resetUploadButton();
+        });
+    });
+    
+    function resetUploadButton() {
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload to Pixer Device';
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Reset upload button when operation completes
+    window.addEventListener('operationComplete', function(e) {
+        if (e.detail.operation === 'image_upload') {
+            resetUploadButton();
+        }
+    });
+});
+</script>
+{% endblock %}

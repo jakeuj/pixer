@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Pixer Web Interface{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-upload me-2"></i>Upload Image to Pixer
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="image-file" class="form-label">Select Image File</label>
+                        <input type="file" class="form-control" id="image-file" name="file" 
+                               accept="image/*" required>
+                        <div class="form-text">
+                            Supported formats: JPG, PNG, BMP, TIFF, WebP. Max size: 16MB.
+                            Images will be automatically resized to 1872x1404 pixels.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="image-preview" style="display: none;">
+                        <label class="form-label">Preview</label>
+                        <div class="border rounded p-2 text-center">
+                            <img id="preview-image" src="" alt="Preview" class="img-fluid" 
+                                 style="max-height: 200px;">
+                            <div id="image-info" class="small text-muted mt-2"></div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="upload-btn">
+                        <i class="fas fa-upload me-2"></i>Upload to Pixer
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Operations
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="recent-operations">
+                    <p class="text-muted">No recent operations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tv me-2"></i>Device Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="device-status-card">
+                    {% if device_status.success and device_status.device_info.connected %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>Device Connected
+                        </div>
+                        
+                        <div class="row g-2">
+                            {% if device_status.device_info.battery_level %}
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center py-2">
+                                        <i class="fas fa-battery-three-quarters text-success"></i>
+                                        <div class="small">Battery</div>
+                                        <strong>{{ device_status.device_info.battery_level }}%</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if device_status.device_info.ble_version %}
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center py-2">
+                                        <i class="fas fa-bluetooth text-primary"></i>
+                                        <div class="small">BLE</div>
+                                        <strong>{{ device_status.device_info.ble_version }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if device_status.device_info.mcu_version %}
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center py-2">
+                                        <i class="fas fa-microchip text-info"></i>
+                                        <div class="small">MCU</div>
+                                        <strong>{{ device_status.device_info.mcu_version }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if device_status.device_info.ite_version %}
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center py-2">
+                                        <i class="fas fa-display text-warning"></i>
+                                        <div class="small">ITE</div>
+                                        <strong>{{ device_status.device_info.ite_version }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Device Not Connected
+                        </div>
+                        <p class="text-muted small">
+                            {% if device_status.device_info.error %}
+                                Error: {{ device_status.device_info.error }}
+                            {% else %}
+                                Make sure you're connected to the Pixer WiFi network (192.168.1.1).
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-outline-primary btn-sm" id="refresh-status-btn">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh Status
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" id="reset-device-btn">
+                        <i class="fas fa-power-off me-2"></i>Reset Device
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Quick Tips
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-wifi text-primary me-2"></i>
+                        Connect to Pixer WiFi network first
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-image text-success me-2"></i>
+                        Images are auto-rotated and resized
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-battery-half text-warning me-2"></i>
+                        Check battery level before uploads
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-clock text-info me-2"></i>
+                        Large images may take time to process
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Image file preview
+    const fileInput = document.getElementById('image-file');
+    const previewDiv = document.getElementById('image-preview');
+    const previewImage = document.getElementById('preview-image');
+    const imageInfo = document.getElementById('image-info');
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewDiv.style.display = 'block';
+                
+                // Show file info
+                const sizeKB = (file.size / 1024).toFixed(1);
+                imageInfo.textContent = `${file.name} (${sizeKB} KB)`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewDiv.style.display = 'none';
+        }
+    });
+    
+    // Upload form handling
+    const uploadForm = document.getElementById('upload-form');
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(uploadForm);
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('Please select a file first.');
+            return;
+        }
+        
+        // Show operation modal
+        showOperationModal('Image Upload', 'image_upload');
+        
+        // Submit upload
+        fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                hideOperationModal();
+                alert('Upload failed: ' + data.error);
+            }
+            // Operation modal will be updated by polling
+        })
+        .catch(error => {
+            hideOperationModal();
+            alert('Upload failed: ' + error.message);
+        });
+    });
+    
+    // Device status refresh
+    document.getElementById('refresh-status-btn').addEventListener('click', function() {
+        showOperationModal('Device Check', 'device_check');
+        
+        fetch('/api/device/check', {method: 'POST'})
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                hideOperationModal();
+                alert('Failed to start device check: ' + data.error);
+            }
+        })
+        .catch(error => {
+            hideOperationModal();
+            alert('Device check failed: ' + error.message);
+        });
+    });
+    
+    // Device reset
+    document.getElementById('reset-device-btn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to reset the device?')) {
+            showOperationModal('Device Reset', 'device_reset');
+            
+            fetch('/api/device/reset', {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    hideOperationModal();
+                    alert('Failed to start device reset: ' + data.error);
+                }
+            })
+            .catch(error => {
+                hideOperationModal();
+                alert('Device reset failed: ' + error.message);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
