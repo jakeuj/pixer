@@ -1,5 +1,7 @@
 ## Reverse Engineering the G+ Pixer E-Ink Photo Frame
 
+![Pixer Screenshot](snapshot.png)
+
 ### Usage
 
 Connect to the device's wifi hotspot, then

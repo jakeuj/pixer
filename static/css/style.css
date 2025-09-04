@@ -1,0 +1,287 @@
+/* Pixer Web Interface Custom Styles */
+
+:root {
+    --pixer-primary: #2c3e50;
+    --pixer-secondary: #34495e;
+    --pixer-success: #27ae60;
+    --pixer-warning: #f39c12;
+    --pixer-danger: #e74c3c;
+    --pixer-info: #3498db;
+    --pixer-light: #ecf0f1;
+    --pixer-dark: #2c3e50;
+}
+
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+/* Card Enhancements */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: var(--pixer-light);
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 500;
+}
+
+/* Device Status Indicators */
+.device-status-connected {
+    color: var(--pixer-success) !important;
+}
+
+.device-status-disconnected {
+    color: var(--pixer-danger) !important;
+}
+
+.device-status-unknown {
+    color: #6c757d !important;
+}
+
+/* Progress Bar Enhancements */
+.progress {
+    height: 1.5rem;
+    border-radius: 0.375rem;
+}
+
+.progress-bar {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Upload Area Styling */
+.upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-area:hover {
+    border-color: var(--pixer-primary);
+    background-color: rgba(44, 62, 80, 0.05);
+}
+
+.upload-area.dragover {
+    border-color: var(--pixer-success);
+    background-color: rgba(39, 174, 96, 0.1);
+}
+
+/* Image Preview */
+.image-preview {
+    max-width: 100%;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Operation Status */
+.operation-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    min-width: 300px;
+}
+
+/* Battery Level Styling */
+.battery-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.battery-level-low {
+    color: var(--pixer-danger);
+}
+
+.battery-level-medium {
+    color: var(--pixer-warning);
+}
+
+.battery-level-high {
+    color: var(--pixer-success);
+}
+
+/* Device Info Cards */
+.device-info-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    transition: transform 0.2s ease;
+}
+
+.device-info-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Status Badges */
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* File Input Styling */
+.form-control:focus {
+    border-color: var(--pixer-primary);
+    box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+}
+
+/* Button Enhancements */
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-primary {
+    background-color: var(--pixer-primary);
+    border-color: var(--pixer-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--pixer-secondary);
+    border-color: var(--pixer-secondary);
+}
+
+/* Alert Enhancements */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.alert-success {
+    background-color: rgba(39, 174, 96, 0.1);
+    color: #155724;
+    border-left: 4px solid var(--pixer-success);
+}
+
+.alert-warning {
+    background-color: rgba(243, 156, 18, 0.1);
+    color: #856404;
+    border-left: 4px solid var(--pixer-warning);
+}
+
+.alert-danger {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #721c24;
+    border-left: 4px solid var(--pixer-danger);
+}
+
+.alert-info {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: #0c5460;
+    border-left: 4px solid var(--pixer-info);
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .operation-status {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin: 1rem 0;
+        min-width: auto;
+    }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+/* Utility Classes */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.border-dashed {
+    border-style: dashed !important;
+}
+
+/* Dark Mode Support (Optional) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bs-body-bg: #1a1a1a;
+        --bs-body-color: #ffffff;
+    }
+    
+    .card {
+        background-color: #2d2d2d;
+        color: #ffffff;
+    }
+    
+    .card-header {
+        background-color: #3d3d3d;
+        border-bottom-color: #4d4d4d;
+    }
+    
+    .bg-light {
+        background-color: #3d3d3d !important;
+    }
+    
+    .text-muted {
+        color: #adb5bd !important;
+    }
+}
