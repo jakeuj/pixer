@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixer Uploader</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🖼️ Pixer Uploader</h1>
+            <p>Upload images to your G+ e-ink photo frame</p>
+        </header>
+
+        <main>
+            <!-- Device Status Section -->
+            <section class="device-status">
+                <h2>Device Status</h2>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="label">Connection:</span>
+                        <span id="connection-status" class="status disconnected">Disconnected</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Battery:</span>
+                        <span id="battery-level" class="status">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">BLE Version:</span>
+                        <span id="ble-version" class="status">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">ITE Version:</span>
+                        <span id="ite-version" class="status">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">MCU Version:</span>
+                        <span id="mcu-version" class="status">--</span>
+                    </div>
+                </div>
+                <div class="device-actions">
+                    <button id="check-device-btn" class="btn btn-primary">Check Device</button>
+                    <button id="reset-device-btn" class="btn btn-secondary">Reset Device</button>
+                </div>
+            </section>
+
+            <!-- Image Upload Section -->
+            <section class="image-upload">
+                <h2>Image Upload</h2>
+                <div class="upload-area">
+                    <div id="image-preview" class="image-preview">
+                        <div class="placeholder">
+                            <span class="icon">📷</span>
+                            <p>Select an image to upload</p>
+                            <p class="supported-formats">Supported: JPG, PNG, BMP, GIF</p>
+                        </div>
+                    </div>
+                    <div class="upload-controls">
+                        <button id="select-image-btn" class="btn btn-primary">Select Image</button>
+                        <button id="upload-image-btn" class="btn btn-success" disabled>Upload to Device</button>
+                    </div>
+                    <div id="selected-file-info" class="file-info" style="display: none;">
+                        <p><strong>Selected:</strong> <span id="file-name"></span></p>
+                        <p><strong>Size:</strong> <span id="file-size"></span></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Progress Section -->
+            <section id="progress-section" class="progress-section" style="display: none;">
+                <h3>Upload Progress</h3>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <p id="progress-text">0%</p>
+            </section>
+
+            <!-- Firmware Status Section -->
+            <section class="firmware-status">
+                <h2>Firmware Files</h2>
+                <div class="firmware-grid">
+                    <div class="firmware-item">
+                        <span class="label">ble.bin:</span>
+                        <span id="ble-bin-status" class="status">--</span>
+                    </div>
+                    <div class="firmware-item">
+                        <span class="label">ite.bin:</span>
+                        <span id="ite-bin-status" class="status">--</span>
+                    </div>
+                    <div class="firmware-item">
+                        <span class="label">pixer.bin:</span>
+                        <span id="pixer-bin-status" class="status">--</span>
+                    </div>
+                </div>
+                <p class="firmware-note">
+                    Place firmware files in the application directory for automatic updates.
+                </p>
+            </section>
+
+            <!-- Log Section -->
+            <section class="log-section">
+                <h2>Activity Log</h2>
+                <div id="log-container" class="log-container">
+                    <p class="log-entry">Application started</p>
+                </div>
+                <button id="clear-log-btn" class="btn btn-small">Clear Log</button>
+            </section>
+        </main>
+
+        <footer>
+            <p id="app-info">Pixer Uploader v1.0.0</p>
+        </footer>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

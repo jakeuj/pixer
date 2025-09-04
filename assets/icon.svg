@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="url(#grad1)" stroke="#4a5568" stroke-width="4"/>
+  
+  <!-- E-ink frame representation -->
+  <rect x="64" y="80" width="128" height="96" rx="8" fill="#f7fafc" stroke="#4a5568" stroke-width="3"/>
+  
+  <!-- Screen content lines -->
+  <rect x="76" y="92" width="104" height="4" rx="2" fill="#a0aec0"/>
+  <rect x="76" y="104" width="80" height="4" rx="2" fill="#a0aec0"/>
+  <rect x="76" y="116" width="96" height="4" rx="2" fill="#a0aec0"/>
+  <rect x="76" y="128" width="72" height="4" rx="2" fill="#a0aec0"/>
+  <rect x="76" y="140" width="88" height="4" rx="2" fill="#a0aec0"/>
+  <rect x="76" y="152" width="64" height="4" rx="2" fill="#a0aec0"/>
+  
+  <!-- Upload arrow -->
+  <path d="M128 200 L128 220 M118 210 L128 200 L138 210" stroke="#f7fafc" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Pixer text -->
+  <text x="128" y="45" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#f7fafc">Pixer</text>
+</svg>

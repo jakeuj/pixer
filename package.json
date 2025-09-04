@@ -1,0 +1,63 @@
+{
+  "name": "pixer-electron",
+  "version": "1.0.0",
+  "description": "Electron version of Pixer uploader for G+ e-ink photo frame",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [
+    "pixer",
+    "e-ink",
+    "photo-frame",
+    "image-upload",
+    "electron"
+  ],
+  "author": "jakeuj",
+  "license": "Unlicense",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "sharp": "^0.33.0"
+  },
+  "build": {
+    "appId": "com.jakeuj.pixer-electron",
+    "productName": "Pixer Uploader",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "*.bin"
+    ],
+    "extraResources": [
+      {
+        "from": "*.bin",
+        "to": ".",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
+  }
+}
