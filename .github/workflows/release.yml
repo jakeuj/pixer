@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., v1.0.0)'
+        description: 'Release version (e.g., v0.0.2)'
         required: true
-        default: 'v1.0.0'
+        default: 'v0.0.2'
 
 jobs:
   build:
@@ -41,7 +41,7 @@ jobs:
           cache: 'npm'
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -489,7 +489,7 @@ jobs:
         run: npm run build
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pixer-controller-${{ matrix.platform }}-${{ matrix.arch }}
           path: |
@@ -508,7 +508,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
@@ -516,16 +516,13 @@ jobs:
         run: ls -la artifacts/
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.version || github.ref_name }}
-          release_name: Pixer Controller ${{ github.event.inputs.version || github.ref_name }}
+          name: Pixer Controller ${{ github.event.inputs.version || github.ref_name }}
           body: |
             ## Pixer Controller Release ${{ github.event.inputs.version || github.ref_name }}
-            
+
             ### 功能特色
             - 🖼️ 圖形化使用者介面
             - 📱 裝置狀態檢查（電池電量、韌體版本等）
@@ -533,51 +530,33 @@ jobs:
             - 🔧 固件升級功能
             - 🔄 裝置重置功能
             - 📝 即時操作日誌
-            
+
             ### 安裝說明
-            
+
             #### Windows 11 x64
-            1. 下載 `Pixer-Controller-Setup-x.x.x.exe`
+            1. 下載 `Pixer-Controller-Setup-*.exe`
             2. 執行安裝程式
             3. 完成安裝後即可使用
-            
+
             #### macOS
-            1. 下載 `Pixer-Controller-x.x.x.dmg`
+            1. 下載 `Pixer-Controller-*.dmg`
             2. 開啟 DMG 檔案
             3. 將應用程式拖拽到 Applications 資料夾
             4. 首次執行時可能需要在系統偏好設定中允許執行
-            
+
             ### 使用方式
             1. 確保 Pixer 裝置已開機並建立 WiFi 熱點
             2. 將電腦連接到 Pixer 的 WiFi 熱點
             3. 啟動 Pixer Controller
             4. 點擊「檢查裝置」確認連線
             5. 選擇圖片並上傳到裝置
-            
+
             ### 系統需求
             - Windows 11 x64 或 macOS 10.14+
             - 無需額外安裝 Python 或其他依賴
           draft: false
           prerelease: false
-
-      - name: Upload Windows Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/pixer-controller-win32-x64/Pixer Controller Setup 1.0.0.exe
-          asset_name: Pixer-Controller-Setup-${{ github.event.inputs.version || github.ref_name }}.exe
-          asset_content_type: application/octet-stream
-        continue-on-error: true
-
-      - name: Upload macOS Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/pixer-controller-darwin-x64/Pixer Controller-1.0.0.dmg
-          asset_name: Pixer-Controller-${{ github.event.inputs.version || github.ref_name }}.dmg
-          asset_content_type: application/octet-stream
-        continue-on-error: true
+          files: |
+            artifacts/pixer-controller-win32-x64/*.exe
+            artifacts/pixer-controller-darwin-x64/*.dmg
+          fail_on_unmatched_files: false

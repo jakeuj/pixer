@@ -116,6 +116,15 @@ Pixer Controller.app/Contents/Resources/
    - 檢查 Python 執行檔路徑
    - 確保所有資源檔案都正確打包
 
+5. **GitHub Actions 版本問題**
+   - 已更新所有 actions 到最新版本：
+     - `actions/checkout@v4`
+     - `actions/setup-node@v4`
+     - `actions/setup-python@v5`
+     - `actions/upload-artifact@v4`
+     - `actions/download-artifact@v4`
+     - `softprops/action-gh-release@v2`
+
 ### 除錯方法
 
 1. **查看 GitHub Actions 日誌**
