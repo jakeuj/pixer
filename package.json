@@ -1,0 +1,48 @@
+{
+  "name": "pixer-electron",
+  "version": "1.0.0",
+  "description": "Pixer E-Ink Photo Frame Controller",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "dist": "electron-builder --publish=never"
+  },
+  "keywords": [
+    "pixer",
+    "e-ink",
+    "photo-frame",
+    "electron"
+  ],
+  "author": "jakeuj",
+  "license": "Unlicense",
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "dependencies": {},
+  "build": {
+    "appId": "com.jakeuj.pixer",
+    "productName": "Pixer Controller",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "index.html",
+      "upload.py",
+      "styles.css"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}

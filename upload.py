@@ -130,20 +130,36 @@ class MainActivity:
     def check(self):
         def task():
             client = SocketClient()
+            ble_version = "Unknown"
+            ite_version = "Unknown"
+            mcu_version = "Unknown"
+            battery_level = "0"
+
             try:
                 client.connect()
                 response = client.send(b"#TEST#")
                 if response == "Hello PC!":
-                    ble_version = client.send(b"bleVersion")
-                    ite_version = client.send(b"iteVersion")
-                    mcu_version = client.send(b"mcuVersion")
-                    battery_level = client.send(b"batteryLevel")
-                    self.pixerBattery = int(battery_level)
+                    ble_version = client.send(b"bleVersion") or "Unknown"
+                    ite_version = client.send(b"iteVersion") or "Unknown"
+                    mcu_version = client.send(b"mcuVersion") or "Unknown"
+                    battery_level = client.send(b"batteryLevel") or "0"
+                    try:
+                        self.pixerBattery = int(battery_level)
+                    except (ValueError, TypeError):
+                        self.pixerBattery = 0
+                        battery_level = "0"
             except Exception as e:
                 logger.error(f"Error in checkPixerBattery: {e}")
             finally:
                 client.close()
 
+            # 輸出到 stdout 供 Electron 讀取
+            print(f"Battery={self.pixerBattery}")
+            print(f"BLE Version={ble_version}")
+            print(f"MCU Version={mcu_version}")
+            print(f"ITE Version={ite_version}")
+
+            # 同時輸出到日誌
             logger.debug(f"Battery={self.pixerBattery}")
             logger.debug(f"BLE Version={ble_version}")
             logger.debug(f"MCU Version={mcu_version}")

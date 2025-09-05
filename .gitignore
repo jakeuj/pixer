@@ -206,6 +206,10 @@ out/
 *.tgz
 .npm
 .eslintcache
+package-lock.json
 
 # Electron-builder output
 /dist_electron/
+
+# Temporary Python scripts
+reset_pixer.py

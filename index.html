@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixer Controller</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🖼️ Pixer E-Ink 相框控制器</h1>
+            <p class="subtitle">G+ E-Ink Photo Frame Controller</p>
+        </header>
+
+        <main>
+            <!-- 裝置狀態區域 -->
+            <section class="device-status">
+                <h2>裝置狀態</h2>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="label">連線狀態:</span>
+                        <span id="connection-status" class="status-value unknown">未知</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">電池電量:</span>
+                        <span id="battery-level" class="status-value">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">BLE 版本:</span>
+                        <span id="ble-version" class="status-value">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">MCU 版本:</span>
+                        <span id="mcu-version" class="status-value">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">ITE 版本:</span>
+                        <span id="ite-version" class="status-value">--</span>
+                    </div>
+                </div>
+                <button id="check-device" class="btn btn-primary">檢查裝置</button>
+            </section>
+
+            <!-- 圖片上傳區域 -->
+            <section class="image-upload">
+                <h2>圖片上傳</h2>
+                <div class="upload-area">
+                    <div id="image-preview" class="image-preview">
+                        <div class="placeholder">
+                            <span class="icon">📷</span>
+                            <p>點擊選擇圖片</p>
+                            <p class="hint">支援 JPG, PNG, BMP, GIF, TIFF 格式</p>
+                        </div>
+                    </div>
+                    <div class="upload-controls">
+                        <button id="select-image" class="btn btn-secondary">選擇圖片</button>
+                        <button id="upload-image" class="btn btn-success" disabled>上傳到 Pixer</button>
+                    </div>
+                    <div id="upload-progress" class="progress-container" style="display: none;">
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill"></div>
+                        </div>
+                        <span id="progress-text" class="progress-text">0%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 裝置控制區域 -->
+            <section class="device-control">
+                <h2>裝置控制</h2>
+                <div class="control-buttons">
+                    <button id="reset-device" class="btn btn-warning">重置裝置</button>
+                </div>
+            </section>
+
+            <!-- 日誌區域 -->
+            <section class="logs">
+                <h2>操作日誌</h2>
+                <div id="log-container" class="log-container">
+                    <div class="log-entry info">
+                        <span class="timestamp">[啟動]</span>
+                        <span class="message">Pixer Controller 已啟動</span>
+                    </div>
+                </div>
+                <button id="clear-logs" class="btn btn-outline">清除日誌</button>
+            </section>
+        </main>
+
+        <footer>
+            <p>請確保已連接到 Pixer 裝置的 WiFi 熱點 (192.168.1.1)</p>
+            <p class="version">版本 1.0.0 | 基於 Python upload.py</p>
+        </footer>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

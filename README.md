@@ -1,6 +1,24 @@
 ## Reverse Engineering the G+ Pixer E-Ink Photo Frame
 
-### Usage
+### 🖼️ Electron GUI Application
+
+**新增！** 現在提供圖形化使用者介面：
+
+```bash
+# 一鍵啟動 (推薦)
+./start.sh          # macOS/Linux
+start.bat           # Windows
+
+# 或手動啟動
+npm install
+npm start
+```
+
+詳細說明請參考：
+- [快速開始指南](QUICK_START.md)
+- [Electron 詳細文件](ELECTRON_README.md)
+
+### 🐍 Python 命令列使用
 
 Connect to the device's wifi hotspot, then
 
