@@ -61,11 +61,26 @@ ipcMain.handle('select-image', async () => {
 // 檢查 Pixer 裝置狀態
 ipcMain.handle('check-pixer', async () => {
   return new Promise((resolve, reject) => {
+    console.log('[check-pixer] Starting device check...');
+
     const pythonConfig = getPythonExecutablePath('upload');
     const args = pythonConfig.script ? [pythonConfig.script] : [];
 
+    console.log(`[check-pixer] Spawning: ${pythonConfig.executable}`);
+    console.log(`[check-pixer] Args: ${JSON.stringify(args)}`);
+    console.log(`[check-pixer] Working directory: ${__dirname}`);
+
+    // 設定正確的工作目錄
+    const workingDir = app.isPackaged ? process.resourcesPath : __dirname;
+    console.log(`[check-pixer] Working directory: ${workingDir}`);
+
+    // 嘗試使用 shell 模式來處理路徑中的空格
     const python = spawn(pythonConfig.executable, args, {
-      cwd: __dirname
+      cwd: workingDir,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: process.env,
+      shell: true,
+      windowsHide: true
     });
 
     let output = '';
@@ -80,6 +95,11 @@ ipcMain.handle('check-pixer', async () => {
     });
 
     python.on('close', (code) => {
+      // 清理符號連結
+      if (pythonConfig.cleanup) {
+        pythonConfig.cleanup();
+      }
+
       if (code === 0) {
         // 解析輸出以獲取裝置資訊
         // 合併 stdout 和 stderr 來解析
@@ -129,9 +149,15 @@ ipcMain.handle('check-pixer', async () => {
     });
 
     python.on('error', (err) => {
+      console.log(`[check-pixer] Process error: ${err.message}`);
+      console.log(`[check-pixer] Error code: ${err.code}`);
+      console.log(`[check-pixer] Error errno: ${err.errno}`);
+      console.log(`[check-pixer] Error syscall: ${err.syscall}`);
+      console.log(`[check-pixer] Error path: ${err.path}`);
+
       resolve({
         success: false,
-        error: `Failed to start Python process: ${err.message}`
+        error: `Failed to start Python process: ${err.message} (code: ${err.code})`
       });
     });
   });
@@ -140,11 +166,24 @@ ipcMain.handle('check-pixer', async () => {
 // 上傳圖片到 Pixer
 ipcMain.handle('upload-image', async (event, imagePath) => {
   return new Promise((resolve, reject) => {
+    console.log('[upload-image] Starting image upload...');
+
     const pythonConfig = getPythonExecutablePath('upload');
     const args = pythonConfig.script ? [pythonConfig.script, imagePath] : [imagePath];
 
+    console.log(`[upload-image] Spawning: ${pythonConfig.executable}`);
+    console.log(`[upload-image] Args: ${JSON.stringify(args)}`);
+
+    // 設定正確的工作目錄
+    const workingDir = app.isPackaged ? process.resourcesPath : __dirname;
+    console.log(`[upload-image] Working directory: ${workingDir}`);
+
     const python = spawn(pythonConfig.executable, args, {
-      cwd: __dirname
+      cwd: workingDir,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: process.env,
+      shell: true,
+      windowsHide: true
     });
 
     let output = '';
@@ -168,6 +207,11 @@ ipcMain.handle('upload-image', async (event, imagePath) => {
     });
 
     python.on('close', (code) => {
+      // 清理臨時檔案
+      if (pythonConfig.cleanup) {
+        pythonConfig.cleanup();
+      }
+
       if (code === 0) {
         resolve({
           success: true,
@@ -183,9 +227,20 @@ ipcMain.handle('upload-image', async (event, imagePath) => {
     });
 
     python.on('error', (err) => {
+      console.log(`[upload-image] Process error: ${err.message}`);
+      console.log(`[upload-image] Error code: ${err.code}`);
+      console.log(`[upload-image] Error errno: ${err.errno}`);
+      console.log(`[upload-image] Error syscall: ${err.syscall}`);
+      console.log(`[upload-image] Error path: ${err.path}`);
+
+      // 清理臨時檔案
+      if (pythonConfig.cleanup) {
+        pythonConfig.cleanup();
+      }
+
       resolve({
         success: false,
-        error: `Failed to start Python process: ${err.message}`
+        error: `Failed to start Python process: ${err.message} (code: ${err.code})`
       });
     });
   });
@@ -259,32 +314,92 @@ activity.reset()
 // 獲取 Python 執行檔路徑
 function getPythonExecutablePath(scriptName) {
   const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+  const ext = process.platform === 'win32' ? '.exe' : '';
+
+  console.log(`[DEBUG] Getting Python executable path for ${scriptName}`);
+  console.log(`[DEBUG] isDev: ${isDev}, platform: ${process.platform}`);
 
   if (isDev) {
     // 開發模式：檢查是否有本地建置的執行檔
-    const ext = process.platform === 'win32' ? '.exe' : '';
     const localPath = path.join(__dirname, 'python-dist', `${scriptName}${ext}`);
+    console.log(`[DEBUG] Checking local path: ${localPath}`);
 
     if (fs.existsSync(localPath)) {
+      console.log(`[DEBUG] Using local executable: ${localPath}`);
       return {
         executable: localPath,
         script: null
       };
     } else {
       // 回退到原始 Python 腳本
+      const pythonPath = getPythonPath();
+      const scriptPath = path.join(__dirname, `${scriptName}.py`);
+      console.log(`[DEBUG] Using Python script: ${pythonPath} ${scriptPath}`);
       return {
-        executable: getPythonPath(),
-        script: path.join(__dirname, `${scriptName}.py`)
+        executable: pythonPath,
+        script: scriptPath
       };
     }
   } else {
     // 打包模式：使用獨立執行檔
     const resourcesPath = process.resourcesPath;
-    const ext = process.platform === 'win32' ? '.exe' : '';
-    return {
-      executable: path.join(resourcesPath, 'python-dist', `${scriptName}${ext}`),
-      script: null
-    };
+    const executablePath = path.join(resourcesPath, 'python-dist', `${scriptName}${ext}`);
+    console.log(`[DEBUG] Production mode - resourcesPath: ${resourcesPath}`);
+    console.log(`[DEBUG] Production mode - executable path: ${executablePath}`);
+    console.log(`[DEBUG] Production mode - file exists: ${fs.existsSync(executablePath)}`);
+
+    // 檢查檔案是否存在
+    if (!fs.existsSync(executablePath)) {
+      console.error(`[ERROR] Python executable not found: ${executablePath}`);
+      // 列出 python-dist 目錄內容以便除錯
+      const pythonDistPath = path.join(resourcesPath, 'python-dist');
+      if (fs.existsSync(pythonDistPath)) {
+        console.log(`[DEBUG] Contents of ${pythonDistPath}:`);
+        try {
+          const files = fs.readdirSync(pythonDistPath);
+          files.forEach(file => console.log(`[DEBUG]   - ${file}`));
+        } catch (e) {
+          console.error(`[ERROR] Failed to list directory: ${e.message}`);
+        }
+      } else {
+        console.error(`[ERROR] python-dist directory not found: ${pythonDistPath}`);
+      }
+    }
+
+    // 複製執行檔到臨時目錄來避免空格問題
+    const tempDir = require('os').tmpdir();
+    const tempExecutable = path.join(tempDir, `pixer_${scriptName}_${Date.now()}`);
+
+    try {
+      // 複製執行檔
+      if (fs.existsSync(tempExecutable)) {
+        fs.unlinkSync(tempExecutable);
+      }
+      fs.copyFileSync(executablePath, tempExecutable);
+      fs.chmodSync(tempExecutable, 0o755); // 設定執行權限
+      console.log(`[DEBUG] Copied executable: ${tempExecutable}`);
+
+      return {
+        executable: tempExecutable,
+        script: null,
+        cleanup: () => {
+          try {
+            if (fs.existsSync(tempExecutable)) {
+              fs.unlinkSync(tempExecutable);
+            }
+          } catch (e) {
+            console.error(`[ERROR] Failed to cleanup temp file: ${e.message}`);
+          }
+        }
+      };
+    } catch (e) {
+      console.error(`[ERROR] Failed to copy executable: ${e.message}`);
+      // 回退到原始路徑
+      return {
+        executable: executablePath,
+        script: null
+      };
+    }
   }
 }
 

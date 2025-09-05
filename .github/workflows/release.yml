@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., v0.0.2)'
+        description: 'Release version (e.g., v0.0.1)'
         required: true
-        default: 'v0.0.2'
+        default: 'v0.0.1'
 
 permissions:
   contents: write
@@ -19,7 +19,6 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
         include:
           - os: windows-latest
             platform: win32
@@ -29,6 +28,11 @@ jobs:
           - os: macos-latest
             platform: darwin
             arch: x64
+            ext: ''
+            python_cmd: python3
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
             ext: ''
             python_cmd: python3
 
@@ -146,4 +150,5 @@ jobs:
           files: |
             artifacts/pixer-controller-win32-x64/*.exe
             artifacts/pixer-controller-darwin-x64/*.dmg
+            artifacts/pixer-controller-darwin-arm64/*.dmg
           fail_on_unmatched_files: false
