@@ -50,7 +50,7 @@ jobs:
           ${{ matrix.python_cmd }} -m pip install Pillow PyInstaller
 
       - name: Install Node.js dependencies
-        run: npm ci
+        run: npm install
 
       - name: Create Python standalone executable
         shell: bash
