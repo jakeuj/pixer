@@ -8,7 +8,11 @@
     "dev": "electron . --dev",
     "build": "electron-builder",
     "build-arm": "electron-builder --mac --arm64",
-    "dist": "electron-builder --publish=never"
+    "dist": "electron-builder --publish=never",
+    "build:python": "pyinstaller --onefile --distpath ./python-dist --name upload upload.py && pyinstaller --onefile --distpath ./python-dist --name firmware_upgrade firmware_upgrade.py",
+    "test:windows-fix": "node test-windows-fix.js",
+    "test:macos": "node test-macos-compatibility.js",
+    "test:cross-platform": "npm run test:windows-fix && npm run test:macos"
   },
   "keywords": [
     "pixer",

@@ -74,11 +74,18 @@ ipcMain.handle('check-pixer', async () => {
     const workingDir = app.isPackaged ? process.resourcesPath : __dirname;
     console.log(`[check-pixer] Working directory: ${workingDir}`);
 
+    // 設定環境變數，在 Windows 上確保正確的編碼
+    const spawnEnv = { ...process.env };
+    if (process.platform === 'win32') {
+      spawnEnv.PYTHONIOENCODING = 'utf-8';
+      spawnEnv.LANG = 'zh_TW.UTF-8';
+    }
+
     // 嘗試使用 shell 模式來處理路徑中的空格
     const python = spawn(pythonConfig.executable, args, {
       cwd: workingDir,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: process.env,
+      env: spawnEnv,
       shell: true,
       windowsHide: true
     });
@@ -87,11 +94,19 @@ ipcMain.handle('check-pixer', async () => {
     let error = '';
 
     python.stdout.on('data', (data) => {
-      output += data.toString();
+      // 在 Windows 上處理編碼問題
+      const text = process.platform === 'win32'
+        ? data.toString('utf8')
+        : data.toString();
+      output += text;
     });
 
     python.stderr.on('data', (data) => {
-      error += data.toString();
+      // 在 Windows 上處理編碼問題
+      const text = process.platform === 'win32'
+        ? data.toString('utf8')
+        : data.toString();
+      error += text;
     });
 
     python.on('close', (code) => {
@@ -178,10 +193,17 @@ ipcMain.handle('upload-image', async (event, imagePath) => {
     const workingDir = app.isPackaged ? process.resourcesPath : __dirname;
     console.log(`[upload-image] Working directory: ${workingDir}`);
 
+    // 設定環境變數，在 Windows 上確保正確的編碼
+    const spawnEnv = { ...process.env };
+    if (process.platform === 'win32') {
+      spawnEnv.PYTHONIOENCODING = 'utf-8';
+      spawnEnv.LANG = 'zh_TW.UTF-8';
+    }
+
     const python = spawn(pythonConfig.executable, args, {
       cwd: workingDir,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: process.env,
+      env: spawnEnv,
       shell: true,
       windowsHide: true
     });
@@ -190,7 +212,10 @@ ipcMain.handle('upload-image', async (event, imagePath) => {
     let error = '';
 
     python.stdout.on('data', (data) => {
-      const chunk = data.toString();
+      // 在 Windows 上處理編碼問題
+      const chunk = process.platform === 'win32'
+        ? data.toString('utf8')
+        : data.toString();
       output += chunk;
       
       // 發送進度更新到渲染程序
@@ -203,7 +228,11 @@ ipcMain.handle('upload-image', async (event, imagePath) => {
     });
 
     python.stderr.on('data', (data) => {
-      error += data.toString();
+      // 在 Windows 上處理編碼問題
+      const text = process.platform === 'win32'
+        ? data.toString('utf8')
+        : data.toString();
+      error += text;
     });
 
     python.on('close', (code) => {
@@ -366,35 +395,64 @@ function getPythonExecutablePath(scriptName) {
       }
     }
 
-    // 複製執行檔到臨時目錄來避免空格問題
-    const tempDir = require('os').tmpdir();
-    const tempExecutable = path.join(tempDir, `pixer_${scriptName}_${Date.now()}`);
+    // 在 Windows 上，複製執行檔到臨時目錄來避免路徑和副檔名問題
+    // 在 macOS/Linux 上，直接使用原始路徑以保持穩定性
+    if (process.platform === 'win32') {
+      const tempDir = require('os').tmpdir();
+      // 確保臨時檔案有正確的副檔名
+      const tempExecutable = path.join(tempDir, `pixer_${scriptName}_${Date.now()}${ext}`);
 
-    try {
-      // 複製執行檔
-      if (fs.existsSync(tempExecutable)) {
-        fs.unlinkSync(tempExecutable);
-      }
-      fs.copyFileSync(executablePath, tempExecutable);
-      fs.chmodSync(tempExecutable, 0o755); // 設定執行權限
-      console.log(`[DEBUG] Copied executable: ${tempExecutable}`);
-
-      return {
-        executable: tempExecutable,
-        script: null,
-        cleanup: () => {
-          try {
-            if (fs.existsSync(tempExecutable)) {
-              fs.unlinkSync(tempExecutable);
-            }
-          } catch (e) {
-            console.error(`[ERROR] Failed to cleanup temp file: ${e.message}`);
-          }
+      try {
+        // 複製執行檔
+        if (fs.existsSync(tempExecutable)) {
+          fs.unlinkSync(tempExecutable);
         }
-      };
-    } catch (e) {
-      console.error(`[ERROR] Failed to copy executable: ${e.message}`);
-      // 回退到原始路徑
+        fs.copyFileSync(executablePath, tempExecutable);
+
+        // Windows 上主要依賴副檔名，但仍嘗試設定權限
+        try {
+          fs.chmodSync(tempExecutable, 0o755);
+        } catch (chmodError) {
+          console.warn(`[WARN] Failed to set permissions on Windows: ${chmodError.message}`);
+        }
+
+        console.log(`[DEBUG] Windows: Copied executable to temp: ${tempExecutable}`);
+
+        return {
+          executable: tempExecutable,
+          script: null,
+          cleanup: () => {
+            try {
+              if (fs.existsSync(tempExecutable)) {
+                fs.unlinkSync(tempExecutable);
+              }
+            } catch (e) {
+              console.error(`[ERROR] Failed to cleanup temp file: ${e.message}`);
+            }
+          }
+        };
+      } catch (e) {
+        console.error(`[ERROR] Windows: Failed to copy executable: ${e.message}`);
+        // 回退到原始路徑，用引號包圍路徑
+        const finalExecutablePath = executablePath.includes(' ')
+          ? `"${executablePath}"`
+          : executablePath;
+
+        return {
+          executable: finalExecutablePath,
+          script: null
+        };
+      }
+    } else {
+      // macOS/Linux: 直接使用原始路徑，設定執行權限
+      try {
+        fs.chmodSync(executablePath, 0o755);
+      } catch (chmodError) {
+        console.warn(`[WARN] Failed to set permissions: ${chmodError.message}`);
+      }
+
+      console.log(`[DEBUG] macOS/Linux: Using original executable: ${executablePath}`);
+
       return {
         executable: executablePath,
         script: null
@@ -447,11 +505,10 @@ ipcMain.handle('select-firmware-file', async (event, type) => {
 // 固件升級
 ipcMain.handle('upgrade-firmware', async (event, params) => {
   return new Promise((resolve) => {
-    const pythonPath = getPythonPath();
-    const scriptPath = path.join(__dirname, 'firmware_upgrade.py');
+    console.log('[upgrade-firmware] Starting firmware upgrade...');
 
-    // 準備 Python 腳本參數
-    const args = [scriptPath];
+    const pythonConfig = getPythonExecutablePath('firmware_upgrade');
+    const args = pythonConfig.script ? [pythonConfig.script] : [];
 
     // 添加固件檔案參數
     if (params.bleFile) {
@@ -471,17 +528,36 @@ ipcMain.handle('upgrade-firmware', async (event, params) => {
       args.push('--bsp-version', params.targetVersions.bsp.toString());
     }
 
-    console.log('Starting firmware upgrade with args:', args);
+    console.log(`[upgrade-firmware] Spawning: ${pythonConfig.executable}`);
+    console.log(`[upgrade-firmware] Args: ${JSON.stringify(args)}`);
 
-    const python = spawn(pythonPath, args, {
-      cwd: __dirname
+    // 設定正確的工作目錄
+    const workingDir = app.isPackaged ? process.resourcesPath : __dirname;
+    console.log(`[upgrade-firmware] Working directory: ${workingDir}`);
+
+    // 設定環境變數，在 Windows 上確保正確的編碼
+    const spawnEnv = { ...process.env };
+    if (process.platform === 'win32') {
+      spawnEnv.PYTHONIOENCODING = 'utf-8';
+      spawnEnv.LANG = 'zh_TW.UTF-8';
+    }
+
+    const python = spawn(pythonConfig.executable, args, {
+      cwd: workingDir,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: spawnEnv,
+      shell: true,
+      windowsHide: true
     });
 
     let output = '';
     let errorOutput = '';
 
     python.stdout.on('data', (data) => {
-      const text = data.toString();
+      // 在 Windows 上處理編碼問題
+      const text = process.platform === 'win32'
+        ? data.toString('utf8')
+        : data.toString();
       output += text;
       console.log('Firmware upgrade stdout:', text);
 
@@ -516,12 +592,20 @@ ipcMain.handle('upgrade-firmware', async (event, params) => {
     });
 
     python.stderr.on('data', (data) => {
-      const text = data.toString();
+      // 在 Windows 上處理編碼問題
+      const text = process.platform === 'win32'
+        ? data.toString('utf8')
+        : data.toString();
       errorOutput += text;
       console.error('Firmware upgrade stderr:', text);
     });
 
     python.on('close', (code) => {
+      // 清理臨時檔案
+      if (pythonConfig.cleanup) {
+        pythonConfig.cleanup();
+      }
+
       console.log(`Firmware upgrade process exited with code ${code}`);
 
       if (code === 0) {
@@ -539,9 +623,20 @@ ipcMain.handle('upgrade-firmware', async (event, params) => {
     });
 
     python.on('error', (err) => {
+      // 清理臨時檔案
+      if (pythonConfig.cleanup) {
+        pythonConfig.cleanup();
+      }
+
+      console.log(`[upgrade-firmware] Process error: ${err.message}`);
+      console.log(`[upgrade-firmware] Error code: ${err.code}`);
+      console.log(`[upgrade-firmware] Error errno: ${err.errno}`);
+      console.log(`[upgrade-firmware] Error syscall: ${err.syscall}`);
+      console.log(`[upgrade-firmware] Error path: ${err.path}`);
+
       resolve({
         success: false,
-        error: `Failed to start firmware upgrade process: ${err.message}`
+        error: `Failed to start firmware upgrade process: ${err.message} (code: ${err.code})`
       });
     });
   });
