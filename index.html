@@ -74,6 +74,109 @@
                 </div>
             </section>
 
+            <!-- 固件升級區域 -->
+            <section class="firmware-upgrade">
+                <h2>固件升級</h2>
+
+                <!-- 版本資訊對比 -->
+                <div class="version-comparison">
+                    <h3>版本資訊</h3>
+                    <div class="version-grid">
+                        <div class="version-item">
+                            <div class="version-header">
+                                <span class="version-label">BLE 固件</span>
+                                <span id="ble-upgrade-status" class="upgrade-status">--</span>
+                            </div>
+                            <div class="version-details">
+                                <span class="current-version">目前: <span id="ble-current">--</span></span>
+                                <span class="target-version">目標: <span id="ble-target">1.0.14</span></span>
+                            </div>
+                        </div>
+
+                        <div class="version-item">
+                            <div class="version-header">
+                                <span class="version-label">ITE 固件</span>
+                                <span id="ite-upgrade-status" class="upgrade-status">--</span>
+                            </div>
+                            <div class="version-details">
+                                <span class="current-version">目前: <span id="ite-current">--</span></span>
+                                <span class="target-version">目標: <span id="ite-target">1.0.35</span></span>
+                            </div>
+                        </div>
+
+                        <div class="version-item">
+                            <div class="version-header">
+                                <span class="version-label">BSP 固件</span>
+                                <span id="bsp-upgrade-status" class="upgrade-status">--</span>
+                            </div>
+                            <div class="version-details">
+                                <span class="current-version">目前: <span id="bsp-current">--</span></span>
+                                <span class="target-version">目標: <span id="bsp-target">1702061</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 固件檔案選擇 -->
+                <div class="firmware-files">
+                    <h3>固件檔案</h3>
+                    <div class="file-selection-grid">
+                        <div class="file-item">
+                            <label for="ble-file">BLE 固件檔案:</label>
+                            <div class="file-input-group">
+                                <input type="text" id="ble-file-path" class="file-path" placeholder="選擇 ble.bin 檔案" readonly>
+                                <button id="select-ble-file" class="btn btn-outline btn-small">瀏覽</button>
+                            </div>
+                        </div>
+
+                        <div class="file-item">
+                            <label for="ite-file">ITE 固件檔案:</label>
+                            <div class="file-input-group">
+                                <input type="text" id="ite-file-path" class="file-path" placeholder="選擇 ite.bin 檔案" readonly>
+                                <button id="select-ite-file" class="btn btn-outline btn-small">瀏覽</button>
+                            </div>
+                        </div>
+
+                        <div class="file-item">
+                            <label for="bsp-file">BSP 固件檔案:</label>
+                            <div class="file-input-group">
+                                <input type="text" id="bsp-file-path" class="file-path" placeholder="選擇 pixer.bin 檔案" readonly>
+                                <button id="select-bsp-file" class="btn btn-outline btn-small">瀏覽</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 升級控制 -->
+                <div class="upgrade-controls">
+                    <div class="upgrade-warnings" id="upgrade-warnings" style="display: none;">
+                        <div class="warning-item" id="battery-warning" style="display: none;">
+                            <span class="warning-icon">⚠️</span>
+                            <span class="warning-text">電池電量不足 (≤15%)，請先充電後再進行升級</span>
+                        </div>
+                        <div class="warning-item" id="file-warning" style="display: none;">
+                            <span class="warning-icon">⚠️</span>
+                            <span class="warning-text">請選擇需要升級的固件檔案</span>
+                        </div>
+                    </div>
+
+                    <div class="upgrade-buttons">
+                        <button id="check-firmware" class="btn btn-secondary">檢查固件版本</button>
+                        <button id="start-upgrade" class="btn btn-danger" disabled>開始升級</button>
+                    </div>
+
+                    <div id="upgrade-progress" class="progress-container" style="display: none;">
+                        <div class="progress-info">
+                            <span id="upgrade-stage" class="progress-stage">準備中...</span>
+                            <span id="upgrade-percentage" class="progress-percentage">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="upgrade-progress-fill" class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- 日誌區域 -->
             <section class="logs">
                 <h2>操作日誌</h2>

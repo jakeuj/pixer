@@ -315,6 +315,204 @@ section h2 {
     color: #f6ad55;
 }
 
+/* 固件升級區域 */
+.firmware-upgrade {
+    border-left: 4px solid #ff6b6b;
+}
+
+.firmware-upgrade h2 {
+    color: #ff6b6b;
+    margin-bottom: 20px;
+}
+
+.firmware-upgrade h3 {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+/* 版本比較區域 */
+.version-comparison {
+    margin-bottom: 25px;
+}
+
+.version-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.version-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+}
+
+.version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.version-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.upgrade-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.upgrade-status.up-to-date {
+    background: #d4edda;
+    color: #155724;
+}
+
+.upgrade-status.needs-update {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.upgrade-status.unknown {
+    background: #e2e3e5;
+    color: #6c757d;
+}
+
+.version-details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.current-version, .target-version {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.current-version span, .target-version span {
+    font-weight: 500;
+    color: #495057;
+}
+
+/* 固件檔案選擇區域 */
+.firmware-files {
+    margin-bottom: 25px;
+}
+
+.file-selection-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.file-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.file-item label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.file-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.file-path {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background: #f8f9fa;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.file-path:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.btn-small {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+/* 升級控制區域 */
+.upgrade-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.upgrade-warnings {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.warning-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    color: #856404;
+}
+
+.warning-icon {
+    font-size: 1.2rem;
+}
+
+.warning-text {
+    font-size: 0.9rem;
+}
+
+.upgrade-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.upgrade-buttons .btn {
+    min-width: 120px;
+}
+
+/* 升級進度條 */
+#upgrade-progress {
+    margin-top: 15px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.progress-stage {
+    font-weight: 500;
+    color: #495057;
+}
+
+.progress-percentage {
+    font-weight: 600;
+    color: #007bff;
+}
+
 /* 頁尾 */
 footer {
     text-align: center;
@@ -352,5 +550,18 @@ footer p {
     
     .control-buttons {
         flex-direction: column;
+    }
+
+    .version-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .upgrade-buttons {
+        flex-direction: column;
+    }
+
+    .file-input-group {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

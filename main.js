@@ -260,12 +260,142 @@ activity.reset()
 function getPythonPath() {
   // 嘗試不同的 Python 命令
   const pythonCommands = ['python3', 'python', 'py'];
-  
+
   // 在開發環境中，可以設定環境變數 PYTHON_PATH
   if (process.env.PYTHON_PATH) {
     return process.env.PYTHON_PATH;
   }
-  
+
   // 預設使用 python3
   return 'python3';
 }
+
+// 選擇固件檔案
+ipcMain.handle('select-firmware-file', async (event, type) => {
+  const filters = [
+    { name: 'Binary Files', extensions: ['bin'] },
+    { name: 'All Files', extensions: ['*'] }
+  ];
+
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: filters,
+    title: `選擇 ${type.toUpperCase()} 固件檔案`
+  });
+
+  if (!result.canceled && result.filePaths.length > 0) {
+    const filePath = result.filePaths[0];
+    const fileName = path.basename(filePath);
+
+    return {
+      success: true,
+      filePath: filePath,
+      fileName: fileName
+    };
+  }
+
+  return { success: false };
+});
+
+// 固件升級
+ipcMain.handle('upgrade-firmware', async (event, params) => {
+  return new Promise((resolve) => {
+    const pythonPath = getPythonPath();
+    const scriptPath = path.join(__dirname, 'firmware_upgrade.py');
+
+    // 準備 Python 腳本參數
+    const args = [scriptPath];
+
+    // 添加固件檔案參數
+    if (params.bleFile) {
+      args.push('--ble-file', params.bleFile);
+    }
+    if (params.iteFile) {
+      args.push('--ite-file', params.iteFile);
+    }
+    if (params.bspFile) {
+      args.push('--bsp-file', params.bspFile);
+    }
+
+    // 添加目標版本參數
+    if (params.targetVersions) {
+      args.push('--ble-version', params.targetVersions.ble.toString());
+      args.push('--ite-version', params.targetVersions.ite.toString());
+      args.push('--bsp-version', params.targetVersions.bsp.toString());
+    }
+
+    console.log('Starting firmware upgrade with args:', args);
+
+    const python = spawn(pythonPath, args, {
+      cwd: __dirname
+    });
+
+    let output = '';
+    let errorOutput = '';
+
+    python.stdout.on('data', (data) => {
+      const text = data.toString();
+      output += text;
+      console.log('Firmware upgrade stdout:', text);
+
+      // 解析進度資訊
+      const lines = text.split('\n');
+      for (const line of lines) {
+        if (line.includes('[FW]')) {
+          // 發送進度更新到前端
+          if (line.includes('BLE update')) {
+            mainWindow.webContents.send('firmware-progress', {
+              stage: '正在升級 BLE 固件...',
+              percentage: 25
+            });
+          } else if (line.includes('ITE update')) {
+            mainWindow.webContents.send('firmware-progress', {
+              stage: '正在升級 ITE 固件...',
+              percentage: 50
+            });
+          } else if (line.includes('BSP update')) {
+            mainWindow.webContents.send('firmware-progress', {
+              stage: '正在升級 BSP 固件...',
+              percentage: 75
+            });
+          } else if (line.includes('sent: off') || line.includes('sent: reset')) {
+            mainWindow.webContents.send('firmware-progress', {
+              stage: '重啟裝置中...',
+              percentage: 90
+            });
+          }
+        }
+      }
+    });
+
+    python.stderr.on('data', (data) => {
+      const text = data.toString();
+      errorOutput += text;
+      console.error('Firmware upgrade stderr:', text);
+    });
+
+    python.on('close', (code) => {
+      console.log(`Firmware upgrade process exited with code ${code}`);
+
+      if (code === 0) {
+        resolve({
+          success: true,
+          output: output
+        });
+      } else {
+        resolve({
+          success: false,
+          error: errorOutput || `Process exited with code ${code}`,
+          output: output
+        });
+      }
+    });
+
+    python.on('error', (err) => {
+      resolve({
+        success: false,
+        error: `Failed to start firmware upgrade process: ${err.message}`
+      });
+    });
+  });
+});
