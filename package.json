@@ -1,6 +1,6 @@
 {
   "name": "pixer-electron",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Pixer E-Ink Photo Frame Controller",
   "main": "main.js",
   "scripts": {
@@ -64,7 +64,7 @@
       "category": "public.app-category.utilities",
       "target": {
         "target": "dmg",
-        "arch": ["arm64"]
+        "arch": ["x64", "arm64"]
       },
       "icon": "assets/icon.icns"
     },
