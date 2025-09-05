@@ -30,11 +30,6 @@ jobs:
             arch: x64
             ext: ''
             python_cmd: python3
-          - os: macos-latest
-            platform: darwin
-            arch: arm64
-            ext: ''
-            python_cmd: python3
 
     runs-on: ${{ matrix.os }}
 
@@ -125,12 +120,12 @@ jobs:
             ### 安裝說明
 
             #### Windows 11 x64
-            1. 下載 `Pixer-Controller-Setup-*.exe`
+            1. 下載 `PixerController-Setup-*.exe`
             2. 執行安裝程式
             3. 完成安裝後即可使用
 
             #### macOS
-            1. 下載 `Pixer-Controller-*.dmg`
+            1. 下載 `PixerController-*.dmg`
             2. 開啟 DMG 檔案
             3. 將應用程式拖拽到 Applications 資料夾
             4. 首次執行時可能需要在系統偏好設定中允許執行
@@ -147,8 +142,6 @@ jobs:
             - 無需額外安裝 Python 或其他依賴
           draft: false
           prerelease: false
-          files: |
-            artifacts/pixer-controller-win32-x64/*.exe
-            artifacts/pixer-controller-darwin-x64/*.dmg
-            artifacts/pixer-controller-darwin-arm64/*.dmg
+          # Electron Builder 已經自動上傳檔案到 release，所以我們不需要手動指定檔案
+          # 這樣可以避免路徑匹配問題
           fail_on_unmatched_files: false
