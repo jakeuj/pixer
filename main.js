@@ -61,10 +61,10 @@ ipcMain.handle('select-image', async () => {
 // 檢查 Pixer 裝置狀態
 ipcMain.handle('check-pixer', async () => {
   return new Promise((resolve, reject) => {
-    const pythonPath = getPythonPath();
-    const scriptPath = path.join(__dirname, 'upload.py');
-    
-    const python = spawn(pythonPath, [scriptPath], {
+    const pythonConfig = getPythonExecutablePath('upload');
+    const args = pythonConfig.script ? [pythonConfig.script] : [];
+
+    const python = spawn(pythonConfig.executable, args, {
       cwd: __dirname
     });
 
@@ -140,10 +140,10 @@ ipcMain.handle('check-pixer', async () => {
 // 上傳圖片到 Pixer
 ipcMain.handle('upload-image', async (event, imagePath) => {
   return new Promise((resolve, reject) => {
-    const pythonPath = getPythonPath();
-    const scriptPath = path.join(__dirname, 'upload.py');
-    
-    const python = spawn(pythonPath, [scriptPath, imagePath], {
+    const pythonConfig = getPythonExecutablePath('upload');
+    const args = pythonConfig.script ? [pythonConfig.script, imagePath] : [imagePath];
+
+    const python = spawn(pythonConfig.executable, args, {
       cwd: __dirname
     });
 
@@ -256,7 +256,39 @@ activity.reset()
   });
 });
 
-// 獲取 Python 執行路徑
+// 獲取 Python 執行檔路徑
+function getPythonExecutablePath(scriptName) {
+  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+
+  if (isDev) {
+    // 開發模式：檢查是否有本地建置的執行檔
+    const ext = process.platform === 'win32' ? '.exe' : '';
+    const localPath = path.join(__dirname, 'python-dist', `${scriptName}${ext}`);
+
+    if (fs.existsSync(localPath)) {
+      return {
+        executable: localPath,
+        script: null
+      };
+    } else {
+      // 回退到原始 Python 腳本
+      return {
+        executable: getPythonPath(),
+        script: path.join(__dirname, `${scriptName}.py`)
+      };
+    }
+  } else {
+    // 打包模式：使用獨立執行檔
+    const resourcesPath = process.resourcesPath;
+    const ext = process.platform === 'win32' ? '.exe' : '';
+    return {
+      executable: path.join(resourcesPath, 'python-dist', `${scriptName}${ext}`),
+      script: null
+    };
+  }
+}
+
+// 獲取 Python 執行路徑（開發模式用）
 function getPythonPath() {
   // 嘗試不同的 Python 命令
   const pythonCommands = ['python3', 'python', 'py'];

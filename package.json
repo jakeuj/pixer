@@ -30,16 +30,55 @@
     },
     "files": [
       "main.js",
+      "preload.js",
       "renderer.js",
       "index.html",
-      "upload.py",
-      "styles.css"
+      "styles.css",
+      "python-dist/upload*",
+      "python-dist/firmware_upgrade*",
+      "ble.bin",
+      "ite.bin",
+      "pixer.bin"
+    ],
+    "extraResources": [
+      {
+        "from": "python-dist/",
+        "to": "python-dist/",
+        "filter": ["upload*", "firmware_upgrade*"]
+      },
+      {
+        "from": "ble.bin",
+        "to": "ble.bin"
+      },
+      {
+        "from": "ite.bin",
+        "to": "ite.bin"
+      },
+      {
+        "from": "pixer.bin",
+        "to": "pixer.bin"
+      }
     ],
     "mac": {
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "target": {
+        "target": "dmg",
+        "arch": ["x64"]
+      },
+      "icon": "assets/icon.icns"
     },
     "win": {
-      "target": "nsis"
+      "target": {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     },
     "linux": {
       "target": "AppImage"
