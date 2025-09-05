@@ -211,5 +211,14 @@ package-lock.json
 # Electron-builder output
 /dist_electron/
 
+# PyInstaller
+*.spec
+python-dist/
+
+# 建置暫存檔案
+package.json.backup
+main.js.backup
+temp_reset.py
+
 # Temporary Python scripts
 reset_pixer.py

@@ -1,0 +1,583 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            ext: .exe
+            python_cmd: python
+          - os: macos-latest
+            platform: darwin
+            arch: x64
+            ext: ''
+            python_cmd: python3
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          ${{ matrix.python_cmd }} -m pip install --upgrade pip
+          ${{ matrix.python_cmd }} -m pip install Pillow PyInstaller
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Create Python standalone executable
+        shell: bash
+        run: |
+          # 建立 Python 獨立執行檔
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            pyinstaller --onefile --distpath ./python-dist --name upload upload.py
+            pyinstaller --onefile --distpath ./python-dist --name firmware_upgrade firmware_upgrade.py
+          else
+            pyinstaller --onefile --distpath ./python-dist --name upload upload.py
+            pyinstaller --onefile --distpath ./python-dist --name firmware_upgrade firmware_upgrade.py
+          fi
+
+      - name: Update package.json for standalone Python
+        shell: bash
+        run: |
+          # 更新 electron-builder 配置以包含 Python 執行檔
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            # Windows 配置
+            cat > temp_package.json << 'EOF'
+          {
+            "name": "pixer-electron",
+            "version": "1.0.0",
+            "description": "Pixer E-Ink Photo Frame Controller",
+            "main": "main.js",
+            "scripts": {
+              "start": "electron .",
+              "dev": "electron . --dev",
+              "build": "electron-builder",
+              "dist": "electron-builder --publish=never"
+            },
+            "keywords": ["pixer", "e-ink", "photo-frame", "electron"],
+            "author": "jakeuj",
+            "license": "Unlicense",
+            "devDependencies": {
+              "electron": "^27.0.0",
+              "electron-builder": "^24.6.4"
+            },
+            "dependencies": {},
+            "build": {
+              "appId": "com.jakeuj.pixer",
+              "productName": "Pixer Controller",
+              "directories": {
+                "output": "dist"
+              },
+              "files": [
+                "main.js",
+                "preload.js",
+                "renderer.js",
+                "index.html",
+                "styles.css",
+                "python-dist/upload.exe",
+                "python-dist/firmware_upgrade.exe",
+                "ble.bin",
+                "ite.bin",
+                "pixer.bin"
+              ],
+              "extraResources": [
+                {
+                  "from": "python-dist/upload.exe",
+                  "to": "python-dist/upload.exe"
+                },
+                {
+                  "from": "python-dist/firmware_upgrade.exe", 
+                  "to": "python-dist/firmware_upgrade.exe"
+                },
+                {
+                  "from": "ble.bin",
+                  "to": "ble.bin"
+                },
+                {
+                  "from": "ite.bin",
+                  "to": "ite.bin"
+                },
+                {
+                  "from": "pixer.bin",
+                  "to": "pixer.bin"
+                }
+              ],
+              "win": {
+                "target": {
+                  "target": "nsis",
+                  "arch": ["x64"]
+                },
+                "icon": "assets/icon.ico"
+              },
+              "nsis": {
+                "oneClick": false,
+                "allowToChangeInstallationDirectory": true,
+                "createDesktopShortcut": true,
+                "createStartMenuShortcut": true
+              }
+            }
+          }
+          EOF
+          else
+            # macOS 配置
+            cat > temp_package.json << 'EOF'
+          {
+            "name": "pixer-electron",
+            "version": "1.0.0", 
+            "description": "Pixer E-Ink Photo Frame Controller",
+            "main": "main.js",
+            "scripts": {
+              "start": "electron .",
+              "dev": "electron . --dev",
+              "build": "electron-builder",
+              "dist": "electron-builder --publish=never"
+            },
+            "keywords": ["pixer", "e-ink", "photo-frame", "electron"],
+            "author": "jakeuj",
+            "license": "Unlicense",
+            "devDependencies": {
+              "electron": "^27.0.0",
+              "electron-builder": "^24.6.4"
+            },
+            "dependencies": {},
+            "build": {
+              "appId": "com.jakeuj.pixer",
+              "productName": "Pixer Controller",
+              "directories": {
+                "output": "dist"
+              },
+              "files": [
+                "main.js",
+                "preload.js", 
+                "renderer.js",
+                "index.html",
+                "styles.css",
+                "python-dist/upload",
+                "python-dist/firmware_upgrade",
+                "ble.bin",
+                "ite.bin",
+                "pixer.bin"
+              ],
+              "extraResources": [
+                {
+                  "from": "python-dist/upload",
+                  "to": "python-dist/upload"
+                },
+                {
+                  "from": "python-dist/firmware_upgrade",
+                  "to": "python-dist/firmware_upgrade"
+                },
+                {
+                  "from": "ble.bin",
+                  "to": "ble.bin"
+                },
+                {
+                  "from": "ite.bin", 
+                  "to": "ite.bin"
+                },
+                {
+                  "from": "pixer.bin",
+                  "to": "pixer.bin"
+                }
+              ],
+              "mac": {
+                "category": "public.app-category.utilities",
+                "target": {
+                  "target": "dmg",
+                  "arch": ["x64"]
+                },
+                "icon": "assets/icon.icns"
+              }
+            }
+          }
+          EOF
+          fi
+          mv temp_package.json package.json
+
+      - name: Create updated main.js for standalone Python
+        shell: bash
+        run: |
+          # 建立支援獨立 Python 執行檔的 main.js
+          cat > main_standalone.js << 'EOF'
+          const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+          const path = require('path');
+          const { spawn } = require('child_process');
+          const fs = require('fs');
+
+          let mainWindow;
+
+          function createWindow() {
+            mainWindow = new BrowserWindow({
+              width: 1200,
+              height: 800,
+              webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true,
+                preload: path.join(__dirname, 'preload.js')
+              },
+              icon: getIconPath()
+            });
+
+            mainWindow.loadFile('index.html');
+
+            if (process.env.NODE_ENV === 'development') {
+              mainWindow.webContents.openDevTools();
+            }
+          }
+
+          function getIconPath() {
+            if (process.platform === 'win32') {
+              return path.join(__dirname, 'assets', 'icon.ico');
+            } else if (process.platform === 'darwin') {
+              return path.join(__dirname, 'assets', 'icon.icns');
+            }
+            return null;
+          }
+
+          function getPythonExecutablePath(scriptName) {
+            const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+            
+            if (isDev) {
+              // 開發模式：使用原始 Python 腳本
+              return {
+                executable: getPythonPath(),
+                script: path.join(__dirname, `${scriptName}.py`)
+              };
+            } else {
+              // 打包模式：使用獨立執行檔
+              const resourcesPath = process.resourcesPath;
+              const ext = process.platform === 'win32' ? '.exe' : '';
+              return {
+                executable: path.join(resourcesPath, 'python-dist', `${scriptName}${ext}`),
+                script: null
+              };
+            }
+          }
+
+          function getPythonPath() {
+            const pythonCommands = ['python3', 'python', 'py'];
+            if (process.env.PYTHON_PATH) {
+              return process.env.PYTHON_PATH;
+            }
+            return 'python3';
+          }
+
+          app.whenReady().then(createWindow);
+
+          app.on('window-all-closed', () => {
+            if (process.platform !== 'darwin') {
+              app.quit();
+            }
+          });
+
+          app.on('activate', () => {
+            if (BrowserWindow.getAllWindows().length === 0) {
+              createWindow();
+            }
+          });
+
+          // 選擇圖片檔案
+          ipcMain.handle('select-image', async () => {
+            const result = await dialog.showOpenDialog(mainWindow, {
+              properties: ['openFile'],
+              filters: [
+                { name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'bmp', 'gif', 'tiff'] }
+              ]
+            });
+
+            if (!result.canceled && result.filePaths.length > 0) {
+              return result.filePaths[0];
+            }
+            return null;
+          });
+
+          // 檢查 Pixer 裝置狀態
+          ipcMain.handle('check-pixer', async () => {
+            return new Promise((resolve) => {
+              const pythonConfig = getPythonExecutablePath('upload');
+              const args = pythonConfig.script ? [pythonConfig.script] : [];
+              
+              const python = spawn(pythonConfig.executable, args, {
+                cwd: __dirname
+              });
+
+              let output = '';
+              let error = '';
+
+              python.stdout.on('data', (data) => {
+                output += data.toString();
+              });
+
+              python.stderr.on('data', (data) => {
+                error += data.toString();
+              });
+
+              python.on('close', (code) => {
+                if (code === 0) {
+                  resolve({
+                    success: true,
+                    output
+                  });
+                } else {
+                  resolve({
+                    success: false,
+                    error: error || `Check failed with code ${code}`,
+                    output
+                  });
+                }
+              });
+
+              python.on('error', (err) => {
+                resolve({
+                  success: false,
+                  error: `Failed to start process: ${err.message}`
+                });
+              });
+            });
+          });
+
+          // 上傳圖片到 Pixer
+          ipcMain.handle('upload-image', async (event, imagePath) => {
+            return new Promise((resolve) => {
+              const pythonConfig = getPythonExecutablePath('upload');
+              const args = pythonConfig.script ? [pythonConfig.script, imagePath] : [imagePath];
+              
+              const python = spawn(pythonConfig.executable, args, {
+                cwd: __dirname
+              });
+
+              let output = '';
+              let error = '';
+
+              python.stdout.on('data', (data) => {
+                const chunk = data.toString();
+                output += chunk;
+                
+                if (chunk.includes('progress:')) {
+                  const progressMatch = chunk.match(/progress: (\d+)%/);
+                  if (progressMatch) {
+                    mainWindow.webContents.send('upload-progress', parseInt(progressMatch[1]));
+                  }
+                }
+              });
+
+              python.stderr.on('data', (data) => {
+                error += data.toString();
+              });
+
+              python.on('close', (code) => {
+                if (code === 0) {
+                  resolve({
+                    success: true,
+                    output
+                  });
+                } else {
+                  resolve({
+                    success: false,
+                    error: error || `Upload failed with code ${code}`,
+                    output
+                  });
+                }
+              });
+
+              python.on('error', (err) => {
+                resolve({
+                  success: false,
+                  error: `Failed to start process: ${err.message}`
+                });
+              });
+            });
+          });
+
+          // 重置 Pixer 裝置
+          ipcMain.handle('reset-pixer', async () => {
+            return new Promise((resolve) => {
+              const resetScript = `
+          import sys
+          import os
+          sys.path.append('${__dirname}')
+          from upload import MainActivity
+
+          if __name__ == "__main__":
+              activity = MainActivity()
+              activity.reset()
+          `;
+              
+              const tempScriptPath = path.join(__dirname, 'temp_reset.py');
+              fs.writeFileSync(tempScriptPath, resetScript);
+              
+              const pythonPath = getPythonPath();
+              const python = spawn(pythonPath, [tempScriptPath], {
+                cwd: __dirname
+              });
+
+              let output = '';
+              let error = '';
+
+              python.stdout.on('data', (data) => {
+                output += data.toString();
+              });
+
+              python.stderr.on('data', (data) => {
+                error += data.toString();
+              });
+
+              python.on('close', (code) => {
+                try {
+                  fs.unlinkSync(tempScriptPath);
+                } catch (e) {}
+                
+                if (code === 0) {
+                  resolve({
+                    success: true,
+                    output
+                  });
+                } else {
+                  resolve({
+                    success: false,
+                    error: error || `Reset failed with code ${code}`,
+                    output
+                  });
+                }
+              });
+
+              python.on('error', (err) => {
+                try {
+                  fs.unlinkSync(tempScriptPath);
+                } catch (e) {}
+                
+                resolve({
+                  success: false,
+                  error: `Failed to start Python process: ${err.message}`
+                });
+              });
+            });
+          });
+          EOF
+          mv main_standalone.js main.js
+
+      - name: Build Electron app
+        run: npm run build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: pixer-controller-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+          retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -la artifacts/
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          release_name: Pixer Controller ${{ github.event.inputs.version || github.ref_name }}
+          body: |
+            ## Pixer Controller Release ${{ github.event.inputs.version || github.ref_name }}
+            
+            ### 功能特色
+            - 🖼️ 圖形化使用者介面
+            - 📱 裝置狀態檢查（電池電量、韌體版本等）
+            - 🔄 圖片上傳與進度顯示
+            - 🔧 固件升級功能
+            - 🔄 裝置重置功能
+            - 📝 即時操作日誌
+            
+            ### 安裝說明
+            
+            #### Windows 11 x64
+            1. 下載 `Pixer-Controller-Setup-x.x.x.exe`
+            2. 執行安裝程式
+            3. 完成安裝後即可使用
+            
+            #### macOS
+            1. 下載 `Pixer-Controller-x.x.x.dmg`
+            2. 開啟 DMG 檔案
+            3. 將應用程式拖拽到 Applications 資料夾
+            4. 首次執行時可能需要在系統偏好設定中允許執行
+            
+            ### 使用方式
+            1. 確保 Pixer 裝置已開機並建立 WiFi 熱點
+            2. 將電腦連接到 Pixer 的 WiFi 熱點
+            3. 啟動 Pixer Controller
+            4. 點擊「檢查裝置」確認連線
+            5. 選擇圖片並上傳到裝置
+            
+            ### 系統需求
+            - Windows 11 x64 或 macOS 10.14+
+            - 無需額外安裝 Python 或其他依賴
+          draft: false
+          prerelease: false
+
+      - name: Upload Windows Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/pixer-controller-win32-x64/Pixer Controller Setup 1.0.0.exe
+          asset_name: Pixer-Controller-Setup-${{ github.event.inputs.version || github.ref_name }}.exe
+          asset_content_type: application/octet-stream
+        continue-on-error: true
+
+      - name: Upload macOS Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/pixer-controller-darwin-x64/Pixer Controller-1.0.0.dmg
+          asset_name: Pixer-Controller-${{ github.event.inputs.version || github.ref_name }}.dmg
+          asset_content_type: application/octet-stream
+        continue-on-error: true
