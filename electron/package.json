@@ -1,0 +1,14 @@
+{
+  "name": "pixer-electron",
+  "version": "1.0.0",
+  "description": "Electron 版本 Pixer 圖片轉換與上傳工具",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo '沒有測試' && exit 0"
+  },
+  "dependencies": {
+    "electron": "^27.0.0",
+    "sharp": "^0.33.0"
+  }
+}
