@@ -3,6 +3,18 @@
 
 ![image.png](image.png)
 
+## Electron 版本
+
+在 `electron` 目錄中提供使用 Electron 實作的桌面應用程式，可透過圖形介面選擇圖片並上傳到 Pixer 裝置。
+
+### 執行方式
+
+```bash
+cd electron
+npm install
+npm start
+```
+
 ## 功能特色
 
 - **完全相容**：與原始 Python 版本產生相同的二進位輸出
