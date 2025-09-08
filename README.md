@@ -1,5 +1,7 @@
 ## Reverse Engineering the G+ Pixer E-Ink Photo Frame
 
+![2025-09-08_11-34-39.jpg](2025-09-08_11-34-39.jpg)
+
 ### 🖼️ Electron GUI Application
 
 **新增！** 現在提供圖形化使用者介面：
